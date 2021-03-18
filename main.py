@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from elasticsearch import Elasticsearch
 import requests
 import json
@@ -62,15 +63,12 @@ def save_data(data_list: list):
         json.dump(data_list, f_obj)
 
 if __name__ == '__main__':
-    offset = 0
-    while True:
-        for i in range(0,1000,10000000000000):
-            print(offset)
-            data = get_data(f'https://data.cityofchicago.org/resource/crimes.json?$limit=1000&$offset={offset}')
-            if len(data) == 0:
-                break
-            data_list = crime_data_points(data)
-            # transformation/dataframe function
-            send_data(data_list)
-            save_data(data_list)
-        offset += 1000
+    for i in range(0, 10000000000000, 1000):
+        print(i)
+        data = get_data(f'https://data.cityofchicago.org/resource/crimes.json?$limit=1000&$offset={i}')
+        data_list = crime_data_points(data)
+        # transformation/dataframe function
+        send_data(data_list)
+        save_data(data_list)
+        if len(data) == 0:
+            break
