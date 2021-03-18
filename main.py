@@ -47,12 +47,13 @@ def send_data(data_list: list):
     es = Elasticsearch(['35.246.157.251:9200'])
     for body in data_list:
         short_time_id = body['crime_date'][:-7]
+        short_update_id = body['updated_on'][:-7]
         date_now = str(datetime.now())[:-7]
         resp = es.index(
-            index='crime2',
+            index='crime3',
             doc_type='_doc',
             body=body,
-            id=body['case_number']+'_'+body['crime_id']+'_'+short_time_id+'_'+date_now,
+            id=body['case_number']+'_'+body['crime_id']+'_'+short_time_id+'_'+short_update_id,
             request_timeout=30)
         print(body)
         print(resp,'\n')
