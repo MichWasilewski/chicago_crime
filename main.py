@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-from elasticsearch import Elasticsearch
+import os
 import requests
 import json
+import dotenv
+
 from datetime import date, datetime
+from elasticsearch import Elasticsearch
+
 from measurement import Measurement
 
-
-#    'https://data.cityofchicago.org/resource/crimes.json?$limit=1000000000'
+dotenv.load_dotenv()
+es = Elasticsearch([os.environ['ELK_ADDRES']])
 
 
 def get_data(url):
@@ -20,43 +24,25 @@ def crime_data_points(resp: dict):
     print(resp)
     for crime_data in resp:
         crime = Measurement(**crime_data)
+        print(crime_data)
         obj_list.append(crime.serialize())
     print(obj_list)
     return obj_list
 
-
-# def create_df(response: dict):
-#     headers = list(response[0].keys())
-#     values = [list(i.values()) for i in response]
-#     for sublist in response:
-#         print(sublist)
-#     # df = pd.DataFrame(columns=headers, data=values)
-#     print(headers)
-#     # print(values)
-#     # return df
-#
-#
-# def transformation_df(df):
-#     df['start_date'] = df['date'].apply(pd.to_datetime, format='%Y-%m-%d')
-#     df['hours'] = df['date'].apply(pd.to_datetime, format='%H:%M:%S')
-#     print(df.to_string())
-#     return df
-
+    ''' Funkcja
+    :param data_list: list - parametr przyjmuje liste z serializowanych obiektów klasy measurement'''
 
 def send_data(data_list: list):
-    es = Elasticsearch(['35.246.157.251:9200'])
     for body in data_list:
-        short_time_id = body['crime_date'][:-7]
-        short_update_id = body['updated_on'][:-7]
-        date_now = str(datetime.now())[:-7]
         resp = es.index(
             index='crime3',
             doc_type='_doc',
             body=body,
-            id=body['case_number']+'_'+body['crime_id']+'_'+short_time_id+'_'+short_update_id,
+            id=f"{body['case_number']}_{body['crime_id']}_{body['create_id']}",
             request_timeout=30)
-        print(body)
-        print(resp,'\n')
+        print("Sending to Elasticsearch: ", body)
+        print("Elasticsearch response: ", resp, '\n')
+
 
 def save_data(data_list: list):
     filename = 'crime_'+ str(date.today())+'.json'

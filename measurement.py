@@ -5,7 +5,8 @@ class Measurement:
     def __init__(self, id: str, domestic: bool, arrest: bool, case_number= None, date=None, block=None, iucr=None,
                  primary_type=None, description=None, beat=None, district=None, fbi_code=None, year=None,
                  updated_on=None, community_area=None, ward=None, location=None, location_description=None, **kwargs):
-        self.location: dict = {'lat': location['latitude'], 'lon': location['longitude']} if location else {'lat': 0, 'lon': 0}
+        self.location: dict = {'lat': location['latitude'], 'lon': location['longitude']} if location else {'lat': 0,
+                                'lon': 0}
         self.crime_id: str = id
         self.case_number: str = case_number if case_number else ""
         self.crime_date: str = date if date else ""
@@ -24,6 +25,7 @@ class Measurement:
         self.year: int = year if year else 0
         self.updated_on: str = updated_on if updated_on else ""
         self.detail_date = self.detail_date()
+        self.create_id = self.create_id()
 
     def detail_date(self):
         if self.crime_date != "":
@@ -31,6 +33,13 @@ class Measurement:
             return {'year': date_object.year, 'month': date_object.month, 'day': date_object.day, 'hour': date_object.hour, 'minute': date_object.minute, 'weekday': date_object.weekday()}
         else:
             return {}
+    def create_id(self):
+        short_time_id = datetime.strptime(self.crime_date, '%Y-%m-%dT%H:%M:%S.%f')
+        short_id = short_time_id.strftime('%Y-%m-%dT%H:%M')
+        short_update_id = datetime.strptime(self.updated_on, '%Y-%m-%dT%H:%M:%S.%f')
+        short_update = short_update_id.strftime('%Y-%m-%dT%H:%M')
+        return self.case_number+"_"+self.crime_id+"_"+short_id+short_update
+
     def serialize(self):
         obj_dict = self.__dict__
         return obj_dict
